@@ -123,28 +123,38 @@ public class QuestionDetailActivity extends AppCompatActivity{
             fab2.setVisibility(View.VISIBLE);
 
             fab2.setOnClickListener(new View.OnClickListener() {
+
                 @Override
                 public void onClick(View view) {
 
                     FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
 
                     String uid=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     FirebaseUser user = getInstance().getCurrentUser();
 
+//お気に入り質問を削除する（現在は判定できないため、ただ削除することを選択しています）
                     DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
                     Map<String, String> data = new HashMap<String, String>();
-                    data.put("uid", mQuestion.getQuestionUid());
+                    data.put("getQuestionUid", mQuestion.getQuestionUid());
                     Log.d("asat","■138■mQuestion.getQuestionUid()："+mQuestion.getQuestionUid());
                     DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
-                    favoriteRef.push().setValue(data, this);
-                    //Log.d("asat","■141■favoriteRef："+String.valueOf(favoriteRef));
+                    favoriteRef.removeValue();
+                    Log.d("asat","■141■favoriteRef："+String.valueOf(favoriteRef));
+                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
 
+//お気に入り質問を登録する
+ /*                   DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
+                    Map<String, String> data = new HashMap<String, String>();
+                    data.put("getQuestionUid", mQuestion.getQuestionUid());
+                    data.put("name","asat");
+                    Log.d("asat","■138■mQuestion.getQuestionUid()："+mQuestion.getQuestionUid());
+                    DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
+                    favoriteRef.push().setValue(data);
+                    Log.d("asat","■141■favoriteRef："+String.valueOf(favoriteRef));
+                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));*/
                 }
             });
         }
-
-
 
         DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
         mAnswerRef = dataBaseReference.child(Const.ContentsPATH).child(String.valueOf(mQuestion.getGenre())).child(mQuestion.getQuestionUid()).child(Const.AnswersPATH);
