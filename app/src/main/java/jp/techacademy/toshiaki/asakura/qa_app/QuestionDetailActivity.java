@@ -31,6 +31,7 @@ public class QuestionDetailActivity extends AppCompatActivity{
     private Question mQuestion;
     private QuestionDetailListAdapter mAdapter;
     private DatabaseReference mAnswerRef;
+    private DatabaseReference mQuestionRef;
 
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override
@@ -119,11 +120,15 @@ public class QuestionDetailActivity extends AppCompatActivity{
             FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);  //---------------fabがログイン状態により可視不可状態
             fab2.setVisibility(View.INVISIBLE);
         } else {
+
+            DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
+            DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid());
+            mQuestionRef.addChildEventListener(mEventListener);
+
             FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);  //---------------fabがログイン状態により可視化状態
             fab2.setVisibility(View.VISIBLE);
 
             fab2.setOnClickListener(new View.OnClickListener() {
-
                 @Override
                 public void onClick(View view) {
 
@@ -132,15 +137,24 @@ public class QuestionDetailActivity extends AppCompatActivity{
                     String uid=FirebaseAuth.getInstance().getCurrentUser().getUid();
                     FirebaseUser user = getInstance().getCurrentUser();
 
+                        for(Question question : mQuestion.getQuestionUid()) {
+
+                        if (QnswerUid.equals(mQuestion.getQuestionUid())) {
+                            //お気に入り削除
+                        }else{
+                            //お気に入り削除
+                        }
+                    }
+
 //お気に入り質問を削除する（現在は判定できないため、ただ削除することを選択しています）
-                    DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
+/*                    DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
                     Map<String, String> data = new HashMap<String, String>();
                     data.put("getQuestionUid", mQuestion.getQuestionUid());
                     Log.d("asat","■138■mQuestion.getQuestionUid()："+mQuestion.getQuestionUid());
                     DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
                     favoriteRef.removeValue();
                     Log.d("asat","■141■favoriteRef："+String.valueOf(favoriteRef));
-                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
+                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));*/
 
 //お気に入り質問を登録する
  /*                   DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
