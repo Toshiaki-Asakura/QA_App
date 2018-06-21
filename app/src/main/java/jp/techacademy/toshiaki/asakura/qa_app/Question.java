@@ -25,6 +25,7 @@ import java.util.ArrayList;
         public String getUid() { return mUid; }
 
         public String getQuestionUid() { return mQuestionUid; }
+
         public int getGenre() { return mGenre; }
 
         public byte[] getImageBytes() { return mBitmapArray; }

@@ -23,8 +23,10 @@ import java.util.Map;
 import static com.google.firebase.auth.FirebaseAuth.getInstance;
 
 public class QuestionDetailListAdapter extends BaseAdapter {
-    private final static int TYPE_QUESTION = 0;
-    private final static int TYPE_ANSWER = 1;
+    private final static int TYPE_QUESTION = 0;  //---------------------------------------------必ず0
+
+
+    private final static int TYPE_ANSWER = 1;  //-----------------------------------------------必ず1
 
     private LayoutInflater mLayoutInflater = null;
     private Question mQustion;
