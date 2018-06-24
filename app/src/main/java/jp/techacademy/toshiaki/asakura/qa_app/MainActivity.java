@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String answerBody = (String) temp.get("body");
                         String answerName = (String) temp.get("name"); //                          answer付きの5つのデータをセットします
                         String answerUid = (String) temp.get("uid");
+                                                                                                     Log.d("asat","■answerUid■："+answerUid);
                         Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
                         answerArrayList.add(answer);
                     }
@@ -135,22 +136,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 public void onClick(View view) {
 
                 if (mGenre == 10000) {  //-----------------------------------------------------ジャンルを選択していない場合（mGenre == 0）はエラーを表示するだけ
-
                     Snackbar.make(view, "お気に入りには投稿出来ません", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
-
                 //--------ログインしていない場合はgetCurrentUserはnullを返す
-
                 if (user == null) {  //----------------------------------------------------誰もログインしていない場合は・・・？
                     Intent intent = new Intent(getApplicationContext(), LoginActivity.class);//-----nullの場合はログイン画面（LoginActivity.class）
                     startActivity(intent);  //----------------------------------------------インテントスタート！
-
-
                 } else {//--------------------------------------------------------------------------// ジャンルを渡して質問作成画面を起動する
-
                     Intent intent = new Intent(getApplicationContext(), QuestionSendActivity.class);
                     intent.putExtra("genre", mGenre);  //----------------------------------"genre"=mGenreと併せてインテント
                     startActivity(intent);
@@ -167,7 +162,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);  //----------「navigationView」というUI部品の定義activity_mainにあり、
         navigationView.setNavigationItemSelectedListener(this);  //---------------------------------リスナー実装
-        Log.d("asat","ナヴィゲーションドロワー準備完了");//━■━■━■━■━
+        Log.d("asat","ナヴィゲーションドロワー準備完了");//
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -236,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
         mGenreRef.addChildEventListener(mEventListener);
 
-                int id = item.getItemId();  //--------------------------------------------------------------⇒true（押されたら）ならidをitem.getItemIdに
+        int id = item.getItemId();  //--------------------------------------------------------------⇒true（押されたら）ならidをitem.getItemIdに
 
         if (id == R.id.nav_hobby) {  //------------------------------------------------------------R.id.nav_hobby
             mToolbar.setTitle("趣味");  //--------------------------------------------------------タイトル「趣味」
@@ -267,6 +262,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mGenreRef.removeEventListener(mEventListener);
         }
         mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+        Log.d("asat","■mGenre■："+String.valueOf(mGenre));
+        Log.d("asat","■mGenreRef■："+String.valueOf(mGenreRef));
         mGenreRef.addChildEventListener(mEventListener);
 
         return true;  //---------------------------------------------------------------------------

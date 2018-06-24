@@ -30,63 +30,68 @@ public class QuestionDetailActivity extends AppCompatActivity {
     private Question mQuestion;
     private QuestionDetailListAdapter mAdapter;
     private DatabaseReference mAnswerRef;
-    private DatabaseReference mQuestionRef;
+    private DatabaseReference mFavoriteRef;
+    private boolean mFavoriteFlag =false;
+    private int mGenre;
 
-    //■
+
     private ChildEventListener mEventListener = new ChildEventListener() {
-        SharedPreferences mPreference;
-
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
-
             String answerUid = dataSnapshot.getKey();
-
             for (Answer answer : mQuestion.getAnswers()) {
-                Log.d("asat", "■46■answer：" + String.valueOf(answer));
-                Log.d("asat", "■47■mQuestion：" + String.valueOf(mQuestion));
-                Log.d("asat", "■48■mQuestion.getAnswers()：" + String.valueOf(mQuestion.getAnswers()));
                 // 同じAnswerUidのものが存在しているときは何もしない
                 if (answerUid.equals(answer.getAnswerUid())) {
-                    Log.d("asat", "■51■answerUid：" + String.valueOf(answerUid));
-                    Log.d("asat", "■52■answer.getAnswerUid()：" + String.valueOf(answer.getAnswerUid()));
                     return;
                 }
             }
-//■
             String body = (String) map.get("body");
-            Log.d("asat", "■58■map.get(\"body\")：" + String.valueOf(map.get("body")));
             String name = (String) map.get("name");
-            Log.d("asat", "■60■map.get(\"name\")：" + String.valueOf(map.get("name")));
             String uid = (String) map.get("uid");
-            Log.d("asat", "■62■map.get(\"name\")：" + String.valueOf(map.get("name")));
-
             Answer answer = new Answer(body, name, uid, answerUid);
             mQuestion.getAnswers().add(answer);
             mAdapter.notifyDataSetChanged();
-
         }
-
         @Override
         public void onChildChanged(DataSnapshot dataSnapshot, String s) {
         }
-
         @Override
         public void onChildRemoved(DataSnapshot dataSnapshot) {
         }
-
         @Override
         public void onChildMoved(DataSnapshot dataSnapshot, String s) {
         }
-
         @Override
         public void onCancelled(DatabaseError databaseError) {
         }
     };
 
-
-//◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆onCreate◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
-
+    private ChildEventListener mFavoriteListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            mFavoriteFlag =true;
+            FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+            if (mFavoriteFlag  == true) {
+                fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
+            } else {
+                fab2.setBackgroundTintList(ColorStateList.valueOf(0xff888888));
+            }
+        }
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+        }
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+        }
+        @Override
+       public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+        }
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+        }
+    };
+//--------------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,11 +100,7 @@ public class QuestionDetailActivity extends AppCompatActivity {
         // 渡ってきたQuestionのオブジェクトを保持する
         Bundle extras = getIntent().getExtras();
         mQuestion = (Question) extras.get("question");
-
-        Log.d("asat", "■99■mQuestion：" + String.valueOf(mQuestion));
-
         setTitle(mQuestion.getTitle());
-        Log.d("asat", "■102■mQuestion.getTitle()：" + String.valueOf(mQuestion.getTitle()));
         // ListViewの準備
         mListView = (ListView) findViewById(R.id.listView);
         mAdapter = new QuestionDetailListAdapter(this, mQuestion);
@@ -110,7 +111,7 @@ public class QuestionDetailActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // ログイン済みのユーザーを取得する
+
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
                 if (user == null) {
@@ -131,112 +132,59 @@ public class QuestionDetailActivity extends AppCompatActivity {
 
 
         FirebaseUser user = getInstance().getCurrentUser();
-
-        if (user == null) {
-            FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+        if(user==null){
+            FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);  //---------------fabがログイン状態により可視化状態
             fab2.setVisibility(View.INVISIBLE);
-        } else {
-            FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-            fab2.setVisibility(View.VISIBLE);
-
-            DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-            DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid());
-            favoriteRef.addChildEventListener(mEventListener);
-
-            ChildEventListener childEventListener = new ChildEventListener() {    //■■■赤 ChildEventListener
-                FirebaseUser user = getInstance().getCurrentUser();
-
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    HashMap map = (HashMap) dataSnapshot.getValue();
-                    String getQuestionUid = dataSnapshot.getKey();
-
-                    FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-                    fab2.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            for (Question question : user.getUid()) {   //■■■赤 user.getUid()
-                                if (getQuestionUid.equals(user.getUid())) {  //■■■赤 getQuestionUid
-                                    DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-                                    FirebaseUser user = getInstance().getCurrentUser();
-                                    Map<String, String> data = new HashMap<String, String>();
-                                    data.put("getQuestionUid", mQuestion.getQuestionUid());
-                                    DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
-                                    favoriteRef.removeValue();
-                                    FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-                                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xff444444));
-                                    return;
-                                } else {
-                                    DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-                                    FirebaseUser user = getInstance().getCurrentUser();
-                                    Map<String, String> data = new HashMap<String, String>();
-                                    data.put("getQuestionUid", mQuestion.getQuestionUid());
-                                    DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
-                                    favoriteRef.push().setValue(data);
-                                    FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-                                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
-                                    return;
-                                }
-                            }
-                        }
-                    };  //■■■赤
-            }
-            };
-        }
-//▼
-/*           DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-            DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid());
-                                                                                                    Log.d("asat","■139■favoriteRef："+String.valueOf(favoriteRef));
-            favoriteRef.addChildEventListener(mEventListener);
-
+        }else{
             FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);  //---------------fabがログイン状態により可視化状態
             fab2.setVisibility(View.VISIBLE);
-
-            fab2.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-
-                    FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-
-                    String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                    FirebaseUser user = getInstance().getCurrentUser();
-
-
-
-                        int i = 1;
-                        if (i == 0) {
-//お気にを削除
-                            DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-                            Map<String, String> data = new HashMap<String, String>();
-                            data.put("getQuestionUid", mQuestion.getQuestionUid());
-                                                                                                    Log.d("asat", "■163■mQuestion.getQuestionUid()：" + mQuestion.getQuestionUid());
-                            DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
-                            favoriteRef.removeValue();
-                                                                                                    Log.d("asat", "■166■favoriteRef：" + String.valueOf(favoriteRef));
-                            fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
-                        } else {
-//お気にを登録
-                            DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-                            Map<String, String> data = new HashMap<String, String>();
-                            data.put("getQuestionUid", mQuestion.getQuestionUid());
-                                                                                                    Log.d("asat", "■173■mQuestion.getQuestionUid()：" + mQuestion.getQuestionUid());
-                            DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
-                            favoriteRef.push().setValue(data);
-                                                                                                    Log.d("asat", "■176■favoriteRef：" + String.valueOf(favoriteRef));
-                            fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
-                        }
-                }
-            });
-        }*/
-
-            DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
-            mAnswerRef = dataBaseReference.child(Const.ContentsPATH).child(String.valueOf(mQuestion.getGenre())).child(mQuestion.getQuestionUid()).child(Const.AnswersPATH);
-            mAnswerRef.addChildEventListener(mEventListener);
-
         }
 
-//◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆onCreate finish◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
+        FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+        fab2.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+
+                String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                 FirebaseUser user = getInstance().getCurrentUser();
+                DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
+                Map<String, String> data = new HashMap<String, String>();
+                data.put("QuestionUid", mQuestion.getQuestionUid());
+                DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
+                String questionid = mQuestion.getQuestionUid();
+                data.put("mGenre", String.valueOf(mQuestion.getGenre()));
+                DatabaseReference contentsRef =  dataBaseReference.child(Const.ContentsPATH).child(String.valueOf(mQuestion.getGenre()));
+                String contentsid = String.valueOf(mQuestion.getGenre());
+                                                                                                    Log.d("asat","■uid■："+String.valueOf(uid));
+                                                                                                    Log.d("asat","■mQuestion■："+String.valueOf(mQuestion));
+                                                                                                    Log.d("asat","■favoriteRef■："+String.valueOf(favoriteRef));
+                                                                                                    Log.d("asat","■questionid■："+String.valueOf(questionid));
+                                                                                                    Log.d("asat","■contentsRef■："+String.valueOf(contentsRef));
+                                                                                                    Log.d("asat","■contentsid■："+String.valueOf(contentsid));
+                FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
+                if (mFavoriteFlag  == true) {
+                    favoriteRef.removeValue();
+                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xff888888));//お気に入り削除で「グレー」
+                    mFavoriteFlag=false;
+                } else {
+                    favoriteRef.setValue(data);
+                    fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));//お気に入り登録で「ピンク」
+                    mFavoriteFlag=true;
+
+                }
+            }
+        });
+
+        DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
+        mAnswerRef = dataBaseReference.child(Const.ContentsPATH).child(String.valueOf(mQuestion.getGenre())).child(mQuestion.getQuestionUid()).child(Const.AnswersPATH);
+        mAnswerRef.addChildEventListener(mEventListener);
+
+        if(user!=null) {
+            mFavoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
+            mFavoriteRef.addChildEventListener(mFavoriteListener);
+        } else { return; }
 
     }
+//--------------------------------------------------------------------------------------------------
 }

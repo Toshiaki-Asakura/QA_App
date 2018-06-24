@@ -3,6 +3,7 @@ package jp.techacademy.toshiaki.asakura.qa_app;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,14 +48,17 @@ public class QuestionsListAdapter extends BaseAdapter{
 
         TextView titleText = (TextView) convertView.findViewById(R.id.titleTextView);
         titleText.setText(mQuestionArrayList.get(position).getTitle());
+                                                                                                    Log.d("asat","■titleText■："+String.valueOf(titleText));
 
         TextView nameText = (TextView) convertView.findViewById(R.id.nameTextView);
         nameText.setText(mQuestionArrayList.get(position).getName());
+                                                                                                    Log.d("asat","■mQuestionArrayList■："+String.valueOf(mQuestionArrayList));
 
         TextView resText = (TextView) convertView.findViewById(R.id.resTextView);
         int resNum = mQuestionArrayList.get(position).getAnswers().size();
         resText.setText(String.valueOf(resNum));
 
+                                                                                                    Log.d("asat","■mQuestionArrayList.get(position).getAnswers().size()■："+String.valueOf(mQuestionArrayList.get(position).getAnswers().size()));
         byte[] bytes = mQuestionArrayList.get(position).getImageBytes();
         if (bytes.length != 0) {
             Bitmap image = BitmapFactory.decodeByteArray(bytes, 0, bytes.length).copy(Bitmap.Config.ARGB_8888, true);
