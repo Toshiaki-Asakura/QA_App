@@ -33,14 +33,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private Toolbar mToolbar;  //-----------------------------------------------------------------ツールバーのメンバ変数
     private int mGenre = 0;  //-------------------------------------------------------------------ジャンル選択時の数値、0からスタート
+    private DatabaseReference mDatabaseReference;  //----------------------------------------データベースクラスの定義
+    private DatabaseReference mGenreRef;  //--------------------------------------------------ジャンルごとの階層にアクセスするための変数
+    private ListView mListView;  //-----------------------------------------------------------リストビュー
+    private ArrayList<Question> mQuestionArrayList;  //--------------------------------------アレイリスト、クエスションのリストを参照するためのもの
+    private ArrayList<String> mFavoriteArrayList;  //--------------------------------------アレイリスト、クエスションのリストを参照するためのもの
+    private QuestionsListAdapter mAdapter;  //------------------------------------------------アダプターを呼び込むための変数
+    private DatabaseReference mFavoriteRef;
+    private DatabaseReference  mGenreCeckRef;
+    String mFavoriteQuestionUid;
 
-        private DatabaseReference mDatabaseReference;  //----------------------------------------データベースクラスの定義
-        private DatabaseReference mGenreRef;  //--------------------------------------------------ジャンルごとの階層にアクセスするための変数
-        private ListView mListView;  //-----------------------------------------------------------リストビュー
-        private ArrayList<Question> mQuestionArrayList;  //--------------------------------------アレイリスト、クエスションのリストを参照するためのもの
-        private QuestionsListAdapter mAdapter;  //------------------------------------------------アダプターを呼び込むための変数
-
-        private ChildEventListener mEventListener = new ChildEventListener() {  //---------------データベースのアイテムを取り出す
+    private ChildEventListener mEventListener = new ChildEventListener() {  //---------------データベースのアイテムを取り出す
             @Override//
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {  //--------------------データベースの全体像（DataSnapshot）の各addにアクセス
 
@@ -114,9 +117,106 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onCancelled(DatabaseError databaseError) {
             }
         };
+    private ChildEventListener mFavoriteListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            HashMap map = (HashMap) dataSnapshot.getValue();
+            String mFavoriteQuestionUid =dataSnapshot.getKey();
+            mFavoriteArrayList.add(mFavoriteQuestionUid);
+        }
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-//◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆onCreate◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
 
+
+        }
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+
+
+        }
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+
+
+        }
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+
+
+
+        }
+    };
+    private ChildEventListener mGenreCeckListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            HashMap map = (HashMap) dataSnapshot.getValue();
+            String title = (String) map.get("title");
+            String body = (String) map.get("body");
+            String name = (String) map.get("name");
+            String uid = (String) map.get("uid");
+            String imageString = (String) map.get("image");
+            byte[] bytes;
+            if (imageString != null) {
+                bytes = Base64.decode(imageString, Base64.DEFAULT);
+            } else {
+                bytes = new byte[0];
+            }
+            ArrayList<Answer> answerArrayList = new ArrayList<Answer>();
+            HashMap answerMap = (HashMap) map.get("answers");
+            if (answerMap != null) {
+                for (Object key : answerMap.keySet()) {
+                    HashMap temp = (HashMap) answerMap.get((String) key);
+                    String answerBody = (String) temp.get("body");
+                    String answerName = (String) temp.get("name");
+                    String answerUid = (String) temp.get("uid");
+                    Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
+                    answerArrayList.add(answer);
+                }
+            }
+            Question question = new Question(title, body, name, uid, dataSnapshot.getKey(), mGenre, bytes, answerArrayList);
+            if(mFavoriteQuestionUid.contains(dataSnapshot.getKey())){
+                mQuestionArrayList.add(question);
+            }
+            mAdapter.notifyDataSetChanged();
+        }
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            HashMap map = (HashMap) dataSnapshot.getValue();
+
+            // 変更があったQuestionを探す
+            for (Question question: mQuestionArrayList) {
+                if (dataSnapshot.getKey().equals(question.getQuestionUid())) {
+                    // このアプリで変更がある可能性があるのは回答(Answer)のみ
+                    question.getAnswers().clear();
+                    HashMap answerMap = (HashMap) map.get("answers");
+                    if (answerMap != null) {
+                        for (Object key : answerMap.keySet()) {
+                            HashMap temp = (HashMap) answerMap.get((String) key);
+                            String answerBody = (String) temp.get("body");
+                            String answerName = (String) temp.get("name");
+                            String answerUid = (String) temp.get("uid");
+                            Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
+                            question.getAnswers().add(answer);
+                        }
+                    }
+                    mAdapter.notifyDataSetChanged();
+                }
+            }
+        }
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+        }
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+        }
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+        }
+    };
+//◆◆◆◆◆◆onCreate
     @Override
     protected void onCreate(Bundle savedInstanceState) {  //--------------------------------------描画開始
         super.onCreate(savedInstanceState);
@@ -193,8 +293,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
     }
-
-//◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆onCreate finish◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆
+//◆◆◆◆◆◆onCreate finish
     @Override
     protected void onResume() {  //----------------------------------------------------------------再描画的な感じなのか
         super.onResume();
@@ -213,14 +312,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             item.setVisible(true);
         }
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {  //--------------------------------------------オプションメニューを呼び出すんだろう
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);  //-------------------------------------UI部品ではなくxlmファイルmenu.menu_mainのmenuの中身を見るようだ
         return true;
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {  //--------------------------------------オプションアイテムを選択したかどうか
         int id = item.getItemId();  //--------------------------------------------------------------⇒true（押されたら）ならidをitem.getItemIdに
@@ -232,7 +329,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return super.onOptionsItemSelected(item);  //----------------------------------------------オプションアイテムを選択されなかったら消える
     }
-
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {  //----------------------------------onNavigationItemSelectedが選択されたかどうかを判定
         // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
@@ -278,17 +374,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
             if(mGenre==0) {
+
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
+                mFavoriteRef = mDatabaseReference.child(Const.FavoritesPATH).child(user.getUid());
+                mFavoriteRef.addChildEventListener(mFavoriteListener);
+
                 for (int i = 1; i <= 4; i++) {
-                    mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(i));
-                    mGenreRef.addChildEventListener(mEventListener);
+                    mGenreCeckRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(i));
+                    mGenreCeckRef.addChildEventListener(mGenreCeckListener);
                 }
             }else{
                     mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
                     mGenreRef.addChildEventListener(mEventListener);
-
-             }
+            }
 
         return true;  //---------------------------------------------------------------------------
     }
-
 }
