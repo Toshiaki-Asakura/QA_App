@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
             Question question = new Question(title, body, name, uid, dataSnapshot.getKey(), mGenre, bytes, answerArrayList);
-            if(mFavoriteQuestionUid.contains(dataSnapshot.getKey())){
+            if(mFavoriteArrayList.contains(dataSnapshot.getKey())){
                 mQuestionArrayList.add(question);
             }
             mAdapter.notifyDataSetChanged();
@@ -281,6 +281,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mListView = (ListView) findViewById(R.id.listView);
         mAdapter = new QuestionsListAdapter(this);
         mQuestionArrayList = new ArrayList<Question>();
+        mFavoriteArrayList = new ArrayList<String>();
         mAdapter.notifyDataSetChanged();
 
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -311,6 +312,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }else{
             item.setVisible(true);
         }
+
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {  //--------------------------------------------オプションメニューを呼び出すんだろう
@@ -332,16 +334,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {  //----------------------------------onNavigationItemSelectedが選択されたかどうかを判定
         // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
-        mQuestionArrayList.clear();
-        mAdapter.setQuestionArrayList(mQuestionArrayList);
-        mListView.setAdapter(mAdapter);
 
         // 選択したジャンルにリスナーを登録する
         if (mGenreRef != null) {
             mGenreRef.removeEventListener(mEventListener);
         }
-                                                                                                    /*        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-                                                                                                            mGenreRef.addChildEventListener(mEventListener);*/
         int id = item.getItemId();  //--------------------------------------------------------------⇒true（押されたら）ならidをitem.getItemIdに
 
         if (id == R.id.nav_hobby) {  //------------------------------------------------------------R.id.nav_hobby
@@ -365,16 +362,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             drawer.closeDrawer(GravityCompat.START);
             // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
             mQuestionArrayList.clear();
+            mFavoriteArrayList.clear();
             mAdapter.setQuestionArrayList(mQuestionArrayList);
             mListView.setAdapter(mAdapter);
 
-            // 選択したジャンルにリスナーを登録する
-            if (mGenreRef != null) {
-                mGenreRef.removeEventListener(mEventListener);
-            }
-
             if(mGenre==0) {
-
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
                 mFavoriteRef = mDatabaseReference.child(Const.FavoritesPATH).child(user.getUid());
                 mFavoriteRef.addChildEventListener(mFavoriteListener);
@@ -384,8 +376,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     mGenreCeckRef.addChildEventListener(mGenreCeckListener);
                 }
             }else{
-                    mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-                    mGenreRef.addChildEventListener(mEventListener);
+                 mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+                 mGenreRef.addChildEventListener(mEventListener);
             }
 
         return true;  //---------------------------------------------------------------------------

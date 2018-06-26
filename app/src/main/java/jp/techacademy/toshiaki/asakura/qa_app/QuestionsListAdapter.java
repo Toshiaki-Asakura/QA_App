@@ -19,6 +19,7 @@ public class QuestionsListAdapter extends BaseAdapter{
 
     private LayoutInflater mLayoutInflater = null;
     private ArrayList<Question> mQuestionArrayList;
+    private ArrayList<Question> mFavoriteArrayList;
 
     public QuestionsListAdapter(Context context) {
         mLayoutInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -72,4 +73,5 @@ public class QuestionsListAdapter extends BaseAdapter{
     public void setQuestionArrayList(ArrayList<Question> questionArrayList) {
         mQuestionArrayList = questionArrayList;
     }
+
 }
