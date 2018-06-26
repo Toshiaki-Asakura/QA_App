@@ -19,6 +19,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,15 +32,17 @@ public class QuestionDetailActivity extends AppCompatActivity {
     private QuestionDetailListAdapter mAdapter;
     private DatabaseReference mAnswerRef;
     private DatabaseReference mFavoriteRef;
+    private DatabaseReference mFavoriteRef2;
     private boolean mFavoriteFlag =false;
     private int mGenre;
-
+    private ArrayList<String> mFavoriteQuestionUidList;
 
     private ChildEventListener mEventListener = new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             HashMap map = (HashMap) dataSnapshot.getValue();
             String answerUid = dataSnapshot.getKey();
+            Log.d("asat","■answerUid2■："+String.valueOf(answerUid));
             for (Answer answer : mQuestion.getAnswers()) {
                 // 同じAnswerUidのものが存在しているときは何もしない
                 if (answerUid.equals(answer.getAnswerUid())) {
@@ -54,17 +57,13 @@ public class QuestionDetailActivity extends AppCompatActivity {
             mAdapter.notifyDataSetChanged();
         }
         @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-        }
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) { }
         @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-        }
+        public void onChildRemoved(DataSnapshot dataSnapshot) { }
         @Override
-        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-        }
+        public void onChildMoved(DataSnapshot dataSnapshot, String s) { }
         @Override
-        public void onCancelled(DatabaseError databaseError) {
-        }
+        public void onCancelled(DatabaseError databaseError) { }
     };
 
     private ChildEventListener mFavoriteListener = new ChildEventListener() {
@@ -72,25 +71,19 @@ public class QuestionDetailActivity extends AppCompatActivity {
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
             mFavoriteFlag =true;
             FloatingActionButton fab2 = (FloatingActionButton) findViewById(R.id.fab2);
-            if (mFavoriteFlag  == true) {
-                fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));
-            } else {
-                fab2.setBackgroundTintList(ColorStateList.valueOf(0xff888888));
-            }
+            if (mFavoriteFlag  == true) { fab2.setBackgroundTintList(ColorStateList.valueOf(0xffff00ff));}
+            else { fab2.setBackgroundTintList(ColorStateList.valueOf(0xff888888));}
         }
         @Override
-        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-        }
+        public void onChildChanged(DataSnapshot dataSnapshot, String s) { }
         @Override
-        public void onChildRemoved(DataSnapshot dataSnapshot) {
-        }
+        public void onChildRemoved(DataSnapshot dataSnapshot) { }
         @Override
-       public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-        }
+       public void onChildMoved(DataSnapshot dataSnapshot, String s) { }
         @Override
-        public void onCancelled(DatabaseError databaseError) {
-        }
+        public void onCancelled(DatabaseError databaseError) { }
     };
+
 //--------------------------------------------------------------------------------------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,7 +116,7 @@ public class QuestionDetailActivity extends AppCompatActivity {
                     // --- ここから ---
                     Intent intent = new Intent(getApplicationContext(), AnswerSendActivity.class);
                     intent.putExtra("question", mQuestion);
-                    Log.d("asat", "■122■mQuestion：" + String.valueOf(mQuestion));
+                                                                                                    Log.d("asat", "■mQuestion■：" + String.valueOf(mQuestion));
                     startActivity(intent);
                     // --- ここまで ---
                 }
@@ -150,10 +143,10 @@ public class QuestionDetailActivity extends AppCompatActivity {
                  FirebaseUser user = getInstance().getCurrentUser();
                 DatabaseReference dataBaseReference = FirebaseDatabase.getInstance().getReference();
                 Map<String, String> data = new HashMap<String, String>();
-                data.put("QuestionUid", mQuestion.getQuestionUid());
+                data.put("QuestionUid", mQuestion.getQuestionUid());//■
                 DatabaseReference favoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
                 String questionid = mQuestion.getQuestionUid();
-                data.put("mGenre", String.valueOf(mQuestion.getGenre()));
+                data.put("mGenre", String.valueOf(mQuestion.getGenre()));//■
                 DatabaseReference contentsRef =  dataBaseReference.child(Const.ContentsPATH).child(String.valueOf(mQuestion.getGenre()));
                 String contentsid = String.valueOf(mQuestion.getGenre());
                                                                                                     Log.d("asat","■uid■："+String.valueOf(uid));
@@ -183,6 +176,8 @@ public class QuestionDetailActivity extends AppCompatActivity {
         if(user!=null) {
             mFavoriteRef = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid()).child(mQuestion.getQuestionUid());
             mFavoriteRef.addChildEventListener(mFavoriteListener);
+/*            mFavoriteRef2 = dataBaseReference.child(Const.FavoritesPATH).child(user.getUid());
+            mFavoriteRef2.addChildEventListener(mFavorite2Listener);*/
         } else { return; }
 
     }

@@ -245,7 +245,7 @@ public class QuestionSendActivity extends AppCompatActivity implements View.OnCl
 
             }
 
-            //■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆■◆データをプッシュ！
+            //■◆■データをプッシュ！
             genreRef.push().setValue(data, this);
                                                                                                     Log.d("asat","■248■genreRef.push："+String.valueOf(data));//
                 mProgress.show();

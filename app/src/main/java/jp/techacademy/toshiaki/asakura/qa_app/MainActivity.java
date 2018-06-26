@@ -41,10 +41,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         private QuestionsListAdapter mAdapter;  //------------------------------------------------アダプターを呼び込むための変数
 
         private ChildEventListener mEventListener = new ChildEventListener() {  //---------------データベースのアイテムを取り出す
-
-//■■■DataSnapshotに要素が追加されたときに呼ばれる
-            @Override
+            @Override//
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {  //--------------------データベースの全体像（DataSnapshot）の各addにアクセス
+
                 HashMap map = (HashMap) dataSnapshot.getValue();  //--------------------------------DataSnapshotに「map」という名をつけて
                 String title = (String) map.get("title");
                 String body = (String) map.get("body");
@@ -67,20 +66,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         String answerBody = (String) temp.get("body");
                         String answerName = (String) temp.get("name"); //                          answer付きの5つのデータをセットします
                         String answerUid = (String) temp.get("uid");
-                                                                                                     Log.d("asat","■answerUid■："+answerUid);
+
                         Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
                         answerArrayList.add(answer);
+                                                                                                    Log.d("asat","▼answerArrayList▼："+answerArrayList.size());
                     }
                 }
-
                 Question question = new Question(title, body, name, uid, dataSnapshot.getKey(), mGenre, bytes, answerArrayList);
                 mQuestionArrayList.add(question);
+
+
+                                                                                                    Log.d("asat","■mQuestionArrayList■："+mQuestionArrayList.size());
                 mAdapter.notifyDataSetChanged();
             }
-
-//■■■DataSnapshotの要素に変化があった時に呼ばれます。
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {  //------------------コンテンツが変わったら取得
+            @Override//■■■DataSnapshotの要素に変化があった時に呼ばれます。
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 HashMap map = (HashMap) dataSnapshot.getValue();
 
                 // 変更があったQuestionを探す
@@ -97,22 +97,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 String answerUid = (String) temp.get("uid");
                                 Answer answer = new Answer(answerBody, answerName, answerUid, (String) key);
                                 question.getAnswers().add(answer);
+                                                                                                    Log.d("asat","▲question▲："+question.getAnswers().size());
                             }
                         }
-
                         mAdapter.notifyDataSetChanged();
                     }
                 }
             }
-
-            @Override
+           @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
             }
-
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
@@ -124,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {  //--------------------------------------描画開始
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);  //-----------------------------------------------activity_mainの画面描画
-        Log.d("asat","MainActivity onCreate開始");//━■━■━■━■━
+                                                                                                    Log.d("asat","MainActivity onCreate開始");//
 
         mToolbar = (Toolbar) findViewById(R.id.toolbar);  //--------------------------------------M変数mToolberのfindViewById設定
         setSupportActionBar(mToolbar);  //--------------------------------------------------------setSupportActionBarをmToolbarに
@@ -135,16 +132,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
                 public void onClick(View view) {
 
-                if (mGenre == 10000) {  //-----------------------------------------------------ジャンルを選択していない場合（mGenre == 0）はエラーを表示するだけ
+                if (mGenre == 0) {  //-----------------------------------------------------ジャンルを選択していない場合（mGenre == 0）はエラーを表示するだけ
                     Snackbar.make(view, "お気に入りには投稿出来ません", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
+                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
                 //--------ログインしていない場合はgetCurrentUserはnullを返す
-                if (user == null) {  //----------------------------------------------------誰もログインしていない場合は・・・？
-                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);//-----nullの場合はログイン画面（LoginActivity.class）
-                    startActivity(intent);  //----------------------------------------------インテントスタート！
+                if (user == null) {
+                    // ログインしていなければログイン画面に遷移させる
+                    Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                    startActivity(intent);
                 } else {//--------------------------------------------------------------------------// ジャンルを渡して質問作成画面を起動する
                     Intent intent = new Intent(getApplicationContext(), QuestionSendActivity.class);
                     intent.putExtra("genre", mGenre);  //----------------------------------"genre"=mGenreと併せてインテント
@@ -163,6 +161,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);  //----------「navigationView」というUI部品の定義activity_mainにあり、
         navigationView.setNavigationItemSelectedListener(this);  //---------------------------------リスナー実装
         Log.d("asat","ナヴィゲーションドロワー準備完了");//
+
+        Menu menu = navigationView.getMenu();
+        MenuItem item = menu.findItem(R.id.nav_favo);
+
+        // ログイン済みのユーザーを取得する
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            // ログインしていなければお気に入りを非表示にする
+            item.setVisible(false);
+        }else{
+            // ログインしていればお気に入りを表示する
+            item.setVisible(true);
+        }
 
         mDatabaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -187,13 +198,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {  //----------------------------------------------------------------再描画的な感じなのか
         super.onResume();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
-        if( user== null) {
+        if(mGenre == 0) {
             NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
             onNavigationItemSelected(navigationView.getMenu().getItem(1));
+        }
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu();
+        MenuItem item = menu.findItem(R.id.nav_favo);
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            item.setVisible(false);
         }else{
-            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-            onNavigationItemSelected(navigationView.getMenu().getItem(0));
+            item.setVisible(true);
         }
     }
 
@@ -213,7 +230,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(intent);
             return true;
         }
-
         return super.onOptionsItemSelected(item);  //----------------------------------------------オプションアイテムを選択されなかったら消える
     }
 
@@ -228,9 +244,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (mGenreRef != null) {
             mGenreRef.removeEventListener(mEventListener);
         }
-        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-        mGenreRef.addChildEventListener(mEventListener);
-
+                                                                                                    /*        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+                                                                                                            mGenreRef.addChildEventListener(mEventListener);*/
         int id = item.getItemId();  //--------------------------------------------------------------⇒true（押されたら）ならidをitem.getItemIdに
 
         if (id == R.id.nav_hobby) {  //------------------------------------------------------------R.id.nav_hobby
@@ -247,25 +262,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mGenre = 4;  //------------------------------------------------------------------------後で何かに使う数字を4(int)
         } else if (id == R.id.nav_favo) {  //-----------------------------------------------------id == R.id.nav_favo
             mToolbar.setTitle("お気に入り");  //----------------------------------------------「お気に入り」
-            mGenre = 10000;  //------------------------------------------------------------------------後で何かに使う数字を4(int)
+            mGenre = 0;  //------------------------------------------------------------------------後で何かに使う数字を4(int)
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);  //----------------「drawer」というレイアウトの定義activity_mainにあり、
-        drawer.closeDrawer(GravityCompat.START);  //-----------------------------------------------ドロワーを閉じて元の画面に！
+            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+            drawer.closeDrawer(GravityCompat.START);
+            // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
+            mQuestionArrayList.clear();
+            mAdapter.setQuestionArrayList(mQuestionArrayList);
+            mListView.setAdapter(mAdapter);
 
-        mQuestionArrayList.clear();
-        mAdapter.setQuestionArrayList(mQuestionArrayList);
-        mListView.setAdapter(mAdapter);
+            // 選択したジャンルにリスナーを登録する
+            if (mGenreRef != null) {
+                mGenreRef.removeEventListener(mEventListener);
+            }
 
-        // 選択したジャンルにリスナーを登録する
-        if (mGenreRef != null) {
-            mGenreRef.removeEventListener(mEventListener);
-        }
-        mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
-        Log.d("asat","■mGenre■："+String.valueOf(mGenre));
-        Log.d("asat","■mGenreRef■："+String.valueOf(mGenreRef));
-        mGenreRef.addChildEventListener(mEventListener);
+            if(mGenre==0) {
+                for (int i = 1; i <= 4; i++) {
+                    mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(i));
+                    mGenreRef.addChildEventListener(mEventListener);
+                }
+            }else{
+                    mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+                    mGenreRef.addChildEventListener(mEventListener);
+
+             }
 
         return true;  //---------------------------------------------------------------------------
     }
+
 }
