@@ -306,18 +306,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
             onNavigationItemSelected(navigationView.getMenu().getItem(1));
         }
-
+        //ユーザーのログイン状況でお気に入りを表示
         NavigationView navigationView = findViewById(R.id.nav_view);
         Menu menu = navigationView.getMenu();
         MenuItem item = menu.findItem(R.id.nav_favo);
-
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            item.setVisible(false);
-        }else{
-            item.setVisible(true);
-        }
+        if (user == null) {item.setVisible(false);}else{item.setVisible(true); }
 
+        mQuestionArrayList.clear();
+        mFavoriteArrayList.clear();
+        mAdapter.setQuestionArrayList(mQuestionArrayList);
+        mListView.setAdapter(mAdapter);
+
+        if(mGenre==10000) {
+            mFavoriteRef = mDatabaseReference.child(Const.FavoritesPATH).child(user.getUid());
+            mFavoriteRef.addChildEventListener(mFavoriteListener);
+            for (int i = 1; i <= 4; i++) {
+                mGenreCeckRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(i));
+                mGenreCeckRef.addChildEventListener(mGenreCeckListener);
+              }
+                return;
+            }else{
+                mGenreRef = mDatabaseReference.child(Const.ContentsPATH).child(String.valueOf(mGenre));
+                mGenreRef.addChildEventListener(mEventListener);
+                return;
+        }
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {  //--------------------------------------------オプションメニューを呼び出すんだろう
