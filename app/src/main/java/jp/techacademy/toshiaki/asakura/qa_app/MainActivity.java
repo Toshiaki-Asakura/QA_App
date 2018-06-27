@@ -233,7 +233,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 public void onClick(View view) {
 
                 if (mGenre == 0) {  //-----------------------------------------------------ジャンルを選択していない場合（mGenre == 0）はエラーを表示するだけ
-                    Snackbar.make(view, "お気に入りには投稿出来ません", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(view, "ジャンルを選択してください", Snackbar.LENGTH_LONG).show();
+                    return;
+                }else if (mGenre == 10000){
+                    Snackbar.make(view, "お気に入りには登録できません", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
@@ -298,10 +301,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {  //----------------------------------------------------------------再描画的な感じなのか
         super.onResume();
-        if(mGenre == 0) {
+
+        if(mGenre ==0 ) {
             NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
             onNavigationItemSelected(navigationView.getMenu().getItem(1));
         }
+
         NavigationView navigationView = findViewById(R.id.nav_view);
         Menu menu = navigationView.getMenu();
         MenuItem item = menu.findItem(R.id.nav_favo);
@@ -355,7 +360,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mGenre = 4;  //------------------------------------------------------------------------後で何かに使う数字を4(int)
         } else if (id == R.id.nav_favo) {  //-----------------------------------------------------id == R.id.nav_favo
             mToolbar.setTitle("お気に入り");  //----------------------------------------------「お気に入り」
-            mGenre = 0;  //------------------------------------------------------------------------後で何かに使う数字を4(int)
+            mGenre = 10000;  //------------------------------------------------------------------------後で何かに使う数字を4(int)
         }
 
             DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -366,7 +371,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mAdapter.setQuestionArrayList(mQuestionArrayList);
             mListView.setAdapter(mAdapter);
 
-            if(mGenre==0) {
+            if(mGenre==10000) {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
                 mFavoriteRef = mDatabaseReference.child(Const.FavoritesPATH).child(user.getUid());
                 mFavoriteRef.addChildEventListener(mFavoriteListener);
