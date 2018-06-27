@@ -318,6 +318,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mAdapter.setQuestionArrayList(mQuestionArrayList);
         mListView.setAdapter(mAdapter);
 
+        if (mGenreRef != null) {/////
+            mGenreRef.removeEventListener(mEventListener);
+        }
+        if (mGenreCeckRef != null) {/////
+            mGenreCeckRef.removeEventListener(mGenreCeckListener);
+        }
+
         if(mGenre==10000) {
             mFavoriteRef = mDatabaseReference.child(Const.FavoritesPATH).child(user.getUid());
             mFavoriteRef.addChildEventListener(mFavoriteListener);
@@ -353,10 +360,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(MenuItem item) {  //----------------------------------onNavigationItemSelectedが選択されたかどうかを判定
         // 質問のリストをクリアしてから再度Adapterにセットし、AdapterをListViewにセットし直す
 
-        // 選択したジャンルにリスナーを登録する
-        if (mGenreRef != null) {
-            mGenreRef.removeEventListener(mEventListener);
-        }
+
         int id = item.getItemId();  //--------------------------------------------------------------⇒true（押されたら）ならidをitem.getItemIdに
 
         if (id == R.id.nav_hobby) {  //------------------------------------------------------------R.id.nav_hobby
@@ -383,6 +387,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mFavoriteArrayList.clear();
             mAdapter.setQuestionArrayList(mQuestionArrayList);
             mListView.setAdapter(mAdapter);
+        // 選択したジャンルにリスナーを登録する
+
+        if (mGenreRef != null) {
+            mGenreRef.removeEventListener(mEventListener);        }
+        if (mGenreCeckRef != null) {                                                              /////
+            mGenreCeckRef.removeEventListener(mGenreCeckListener);        }
 
             if(mGenre==10000) {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();  //----------------getCurrentUserでログイン状態かどうかわかる
